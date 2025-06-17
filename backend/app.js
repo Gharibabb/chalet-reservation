@@ -20,7 +20,7 @@ const adminRoutes = require('./routes/admin');
 
 // Utilisation des routes
 app.use('/api/reservations', reservationRoutes);
-app.use('/api/admin', adminRoutes);
+app.use('/api/admin', adminRoutes); 
 
 // Lancement serveur
 app.listen(process.env.PORT, () => {
