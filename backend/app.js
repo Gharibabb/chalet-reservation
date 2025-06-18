@@ -1,30 +1,28 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
+const mongoose = require('mongoose');
 const dotenv = require('dotenv');
-require('dotenv').config(); 
 
+// Initialiser dotenv
 dotenv.config();
 
+// Créer l'application Express
 const app = express();
+
+// Middlewares
 app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
 
-// Connexion à MongoDB
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("✅ Connecté à MongoDB"))
-  .catch(err => console.error("❌ Erreur MongoDB:", err));
+// Connexion MongoDB
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+}).then(() => console.log('✅ Connecté à MongoDB'))
+  .catch((err) => console.error('❌ Erreur MongoDB:', err));
 
-// Import des routes
-const reservationRoutes = require('./routes/reservations');
-const adminRoutes = require('./routes/admin');
+// Routes
+app.use('/api/admin', require('./routes/admin'));
+app.use('/api/reservations', require('./routes/reservation'));
 
-// Utilisation des routes
-app.use('/api/reservations', reservationRoutes);
-app.use('/api/admin', adminRoutes); 
-
-// Lancement serveur
-app.listen(process.env.PORT, () => {
-  console.log(`🚀 Serveur backend lancé sur le port ${process.env.PORT}`);
-});
+// Exporter l'app
+module.exports = app;
