@@ -22,7 +22,7 @@ mongoose.connect(process.env.MONGO_URI, {
 
 // Routes
 app.use('/api/admin', require('./routes/admin'));
-app.use('/api/reservations', require('./routes/reservation'));
+app.use('/api/reservations', require('./routes/reservations'));
 
 // Exporter l'app
 module.exports = app;
