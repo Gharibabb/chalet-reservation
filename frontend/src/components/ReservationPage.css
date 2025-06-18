@@ -1,5 +1,5 @@
 .background-container {
-  background-image: url('C:\Users\Gharib\git-project\chalet-reservation\frontend\public\images\cozy.jpeg');
+  background-image: url('../assets/images/cozy.jpeg');
   background-size: cover;
   background-position: center;
   height: 100vh;
