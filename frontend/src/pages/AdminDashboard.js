@@ -32,7 +32,9 @@ const AdminDashboard = () => {
         <div key={res._id} style={{ border: '1px solid #ccc', padding: 10, marginBottom: 10 }}>
           <p><strong>Nom:</strong> {res.name}</p>
           <p><strong>Téléphone:</strong> {res.phone}</p>
-          <p><strong>Date:</strong> {new Date(res.date).toLocaleDateString()}</p>
+          <p><strong>startTime:</strong> {new Date(res.startTime).toLocaleDateString()}</p>
+          <p><strong>endTime:</strong> {new Date(res.endTime).toLocaleDateString()}</p>
+          <p><strong>Date:</strong> {res.price} $ </p>
           <p><strong>Statut:</strong> {res.status}</p>
           {res.status === 'pending' && (
             <>

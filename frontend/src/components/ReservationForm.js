@@ -95,7 +95,8 @@ const ReservationForm = () => {
 });
 
     try {
-      await API.post('/reservations', {name,
+      await API.post('/reservations', {
+        name,
         phone: formattedPhone,
         startTime: new Date(startTime).toISOString(),
         endTime: new Date(endTime).toISOString(),
