@@ -3,7 +3,14 @@ const mongoose = require('mongoose');
 const reservationSchema = new mongoose.Schema({
   name: String,
   phone: String,
-  date: Date,
+  startDate: {
+    type: Date,
+    required: true
+  },
+  endDate: {
+    type: Date,
+    required: true
+  },
   status: {
     type: String,
     enum: ['pending', 'accepted', 'rejected'],

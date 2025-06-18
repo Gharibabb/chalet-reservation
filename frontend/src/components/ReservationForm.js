@@ -4,24 +4,27 @@ import 'react-datepicker/dist/react-datepicker.css';
 import API from '../services/api';
 import './ReservationPage.css';
 
-// Import du sélecteur de numéro de téléphone
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 
 const ReservationForm = () => {
-  const [date, setDate] = useState(new Date());
+  const [startTime, setStartTime] = useState(new Date());
+  const [endTime, setEndTime] = useState(new Date(new Date().getTime() + 3600000));
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
-  const [reservedDates, setReservedDates] = useState([]);
+  const [price, setPrice] = useState(0);
+  const [reservedRanges, setReservedRanges] = useState([]);
 
-  // Charger les dates déjà réservées
   useEffect(() => {
     const fetchReservations = async () => {
       try {
         const res = await API.get('/reservations');
         const accepted = res.data.filter(r => r.status === 'accepted');
-        const dates = accepted.map(r => new Date(r.date).toDateString());
-        setReservedDates(dates);
+        const ranges = accepted.map(r => ({
+          start: new Date(r.startTime),
+          end: new Date(r.endTime)
+        }));
+        setReservedRanges(ranges);
       } catch (error) {
         console.error("Erreur lors du chargement des réservations :", error);
       }
@@ -29,19 +32,69 @@ const ReservationForm = () => {
     fetchReservations();
   }, []);
 
-  // Vérifier si une date est déjà réservée
-  const isDateReserved = (selectedDate) =>
-    reservedDates.includes(selectedDate.toDateString());
+  useEffect(() => {
+    if (endTime > startTime) {
+      calculatePrice();
+    } else {
+      setPrice(0);
+    }
+  }, [startTime, endTime]);
+
+  const calculatePrice = () => {
+    const durationMs = endTime - startTime;
+    const durationHours = durationMs / (1000 * 60 * 60);
+
+    let total = 0;
+    if (durationHours <= 12) {
+      total = 100;
+    } else if (durationHours <= 24) {
+      total = 180;
+    } else {
+      const fullDays = Math.floor(durationHours / 24);
+      const remainingHours = durationHours % 24;
+
+      if (remainingHours > 0 && remainingHours <= 12) {
+        total = fullDays * 180 + 100;
+      } else if (remainingHours > 12) {
+        total = fullDays * 180 + 180;
+      } else {
+        total = fullDays * 180;
+      }
+    }
+    setPrice(total);
+  };
+
+  const isOverlapping = (start1, end1, start2, end2) => {
+    return start1 < end2 && start2 < end1;
+  };
+
+  const isDateRangeReserved = () =>
+    reservedRanges.some(r => isOverlapping(startTime, endTime, r.start, r.end));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (endTime <= startTime) {
+      alert("La date de fin doit être après la date de début.");
+      return;
+    }
+
+    if (isDateRangeReserved()) {
+      alert("Cette plage horaire est déjà réservée.");
+      return;
+    }
+
     const formattedPhone = phone.startsWith('+') ? phone : `+${phone}`;
+
     try {
       await API.post('/reservations', {
         name,
         phone: formattedPhone,
-        date,
+        startTime,
+        endTime,
+        price,
       });
+
       alert("Réservation soumise ! Vous recevrez une réponse via WhatsApp.");
       setName('');
       setPhone('');
@@ -53,14 +106,40 @@ const ReservationForm = () => {
   return (
     <div className="background-container">
       <div className="content-box">
-        <h2>Cozy Chalet</h2>
+        <h1>Cozy Chalet</h1>
+        <h3>12h: $100 — 24h: $180</h3>
 
-        <DatePicker
-          selected={date}
-          onChange={setDate}
-          filterDate={(d) => !isDateReserved(d)}
-          className="custom-datepicker"
-        />
+         <div style={{ flex: 1 }}>
+          <label style={{ fontWeight: 'bold' }} >FROM  : </label>
+          <DatePicker
+            selected={startTime}
+            onChange={(date) => setStartTime(date)}
+            showTimeSelect
+            timeFormat="HH:mm"
+            timeIntervals={30}
+            dateFormat="yyyy/MM/dd HH:mm"
+            className="custom-datepicker"
+            wrapperClassName="date-picker-wrapper"
+          />
+        </div>
+
+        <div style={{ flex: 1 }}>
+          <label style={{ fontWeight: 'bold' }}>TO : </label>
+          <DatePicker
+            selected={endTime}
+            onChange={(date) => setEndTime(date)}
+            showTimeSelect
+            timeFormat="HH:mm"
+            timeIntervals={30}
+            dateFormat="yyyy/MM/dd HH:mm"
+            className="custom-datepicker"
+            wrapperClassName="date-picker-wrapper"
+          />
+        </div>
+
+        <div style={{ marginTop: '10px', fontWeight: 'bold' }}>
+          Total Price: ${price}
+        </div>
 
         <form onSubmit={handleSubmit} style={{ marginTop: '20px' }}>
           <input
@@ -73,7 +152,7 @@ const ReservationForm = () => {
           />
 
           <PhoneInput
-            country={'lb'} // Liban par défaut
+            country={'lb'}
             value={phone}
             onChange={setPhone}
             inputStyle={{
@@ -81,7 +160,7 @@ const ReservationForm = () => {
               padding: '10px',
               marginBottom: '10px',
             }}
-            enableSearch={true}
+            enableSearch
             specialLabel=""
           />
 
