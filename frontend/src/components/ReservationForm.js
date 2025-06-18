@@ -86,13 +86,20 @@ const ReservationForm = () => {
 
     const formattedPhone = phone.startsWith('+') ? phone : `+${phone}`;
 
+    console.log({
+  name,
+  phone,
+  startTime,
+  endTime,
+  price
+});
+
     try {
-      await API.post('/reservations', {
-        name,
+      await API.post('/reservations', {name,
         phone: formattedPhone,
-        startTime,
-        endTime,
-        price,
+        startTime: new Date(startTime).toISOString(),
+        endTime: new Date(endTime).toISOString(),
+        price: Number(price),
       });
 
       alert("Réservation soumise ! Vous recevrez une réponse via WhatsApp.");
