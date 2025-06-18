@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import Calendar from 'react-calendar';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 import API from '../services/api';
-import 'react-calendar/dist/Calendar.css';
+import './ReservationPage.css';
+
+// Import du sélecteur de numéro de téléphone
+import PhoneInput from 'react-phone-input-2';
+import 'react-phone-input-2/lib/style.css';
 
 const ReservationForm = () => {
   const [date, setDate] = useState(new Date());
@@ -9,28 +14,32 @@ const ReservationForm = () => {
   const [phone, setPhone] = useState('');
   const [reservedDates, setReservedDates] = useState([]);
 
-  // Récupérer les dates réservées pour désactiver
+  // Charger les dates déjà réservées
   useEffect(() => {
     const fetchReservations = async () => {
-      const res = await API.get('/reservations');
-      const accepted = res.data.filter(r => r.status === 'accepted');
-      const dates = accepted.map(r => new Date(r.date).toDateString());
-      setReservedDates(dates);
+      try {
+        const res = await API.get('/reservations');
+        const accepted = res.data.filter(r => r.status === 'accepted');
+        const dates = accepted.map(r => new Date(r.date).toDateString());
+        setReservedDates(dates);
+      } catch (error) {
+        console.error("Erreur lors du chargement des réservations :", error);
+      }
     };
     fetchReservations();
-  }, []); 
+  }, []);
 
-  // Empêcher de sélectionner une date déjà réservée
-  const isTileDisabled = ({ date }) => {
-    return reservedDates.includes(date.toDateString());
-  };
+  // Vérifier si une date est déjà réservée
+  const isDateReserved = (selectedDate) =>
+    reservedDates.includes(selectedDate.toDateString());
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const formattedPhone = phone.startsWith('+') ? phone : `+${phone}`;
     try {
       await API.post('/reservations', {
         name,
-        phone,
+        phone: formattedPhone,
         date,
       });
       alert("Réservation soumise ! Vous recevrez une réponse via WhatsApp.");
@@ -42,35 +51,54 @@ const ReservationForm = () => {
   };
 
   return (
-    <div className="reservation-form" style={{ maxWidth: 400, margin: 'auto' }}>
-      <h2>Réserver le chalet</h2>
-      <Calendar
-        onChange={setDate}
-        value={date}
-        tileDisabled={isTileDisabled}
-      />
+    <div className="background-container">
+      <div className="content-box">
+        <h2>Cozy Chalet</h2>
 
-      <form onSubmit={handleSubmit} style={{ marginTop: '20px' }}>
-        <input
-          type="text"
-          placeholder="Votre nom"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-          style={{ width: '100%', padding: 8, marginBottom: 8 }}
+        <DatePicker
+          selected={date}
+          onChange={setDate}
+          filterDate={(d) => !isDateReserved(d)}
+          className="custom-datepicker"
         />
-        <input
-          type="tel"
-          placeholder="Votre numéro WhatsApp (+213...)"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          required
-          style={{ width: '100%', padding: 8, marginBottom: 8 }}
-        />
-        <button type="submit" style={{ width: '100%', padding: 10, backgroundColor: '#28a745', color: 'white', border: 'none' }}>
-          Réserver
-        </button>
-      </form>
+
+        <form onSubmit={handleSubmit} style={{ marginTop: '20px' }}>
+          <input
+            type="text"
+            placeholder="Your name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+            style={{ width: '100%', padding: 8, marginBottom: 8 }}
+          />
+
+          <PhoneInput
+            country={'lb'} // Liban par défaut
+            value={phone}
+            onChange={setPhone}
+            inputStyle={{
+              width: '100%',
+              padding: '10px',
+              marginBottom: '10px',
+            }}
+            enableSearch={true}
+            specialLabel=""
+          />
+
+          <button
+            type="submit"
+            style={{
+              width: '100%',
+              padding: 10,
+              backgroundColor: '#28a745',
+              color: 'white',
+              border: 'none',
+            }}
+          >
+            Book Now
+          </button>
+        </form>
+      </div>
     </div>
   );
 };

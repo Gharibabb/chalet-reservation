@@ -1,0 +1,31 @@
+.background-container {
+  background-image: url('C:\Users\Gharib\git-project\chalet-reservation\frontend\public\images\cozy.jpeg');
+  background-size: cover;
+  background-position: center;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.content-box {
+  background-color: rgba(255, 255, 255, 0.8);
+  padding: 2rem;
+  border-radius: 10px;
+}
+.custom-datepicker {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 16px;
+  width: 100%;
+  max-width: 250px;
+  background-color: white;
+  color: #222;
+  outline: none;
+}
+
+.custom-datepicker:focus {
+  border-color: #28a745;
+  box-shadow: 0 0 5px rgba(40, 167, 69, 0.5);
+}
